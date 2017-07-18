@@ -156,14 +156,14 @@ namespace autosplittercnn_test
 			}
 
 			System.Console.WriteLine("Matching bins: " + matching_bins);
-			if(run_matching)
+			/*if(run_matching)
 			{
 				run_matching_bins.Add(matching_bins);
 			}
 			else
 			{
 				pause_matching_bins.Add(matching_bins);
-			}
+			}*/
 
 			if (matching_bins >= number_of_bins_needed)
 			{
@@ -427,7 +427,7 @@ namespace autosplittercnn_test
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			if (run_matching)
+			/*if (run_matching)
 			{
 				using (var file = File.CreateText("run_matching.csv"))
 				{
@@ -440,7 +440,7 @@ namespace autosplittercnn_test
 				{
 					file.WriteLine(string.Join(",", pause_matching_bins));
 				}
-			}
+			}*/
 			run_matching = !run_matching;
 			
 		}
