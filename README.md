@@ -27,8 +27,9 @@ If you want to record multiple feature vectors in succession, use record mode. I
 ## Record Current
 This can be used to record feature snapshots during timing. It stores all the features into a .txt file in the same folder as the binary.
 
-## Save Diagnostic Images
+## Save Diagnostics
 If enabled, images where the load screen is detected / not detected are saved periodically into folders "imgs_running" and "imgs_stopped". Images in "imgs_stopped" should *exclusively* contain images of "LOADING", while images in "imgs_running" should *never* contain images of "LOADING".
+For each of these images, also the corresponding feature vectors are saved in "features_running" and "features_stopped", so please, if you report a wrong detection, attach both the relevant diagnostics image and feature_x_y.txt file. Both files have the frame count and the number of matching histogram bins in their filename to uniquely identify them.
 
 
 # TODO:
@@ -41,7 +42,7 @@ Please use the github issue tracking in this repository. If you find a wrong det
 
 Where did it happen? (Area in the Game)
 What were you doing in game?
-Diagnostic image showing the wrong detection. ("LOADING" in "imgs_running" or non-"LOADING" in "imgs_stopped")
+Diagnostic image and corresponding feature_x_y.txt showing the wrong detection. ("LOADING" in "imgs_running" or non-"LOADING" in "imgs_stopped")
 
 Additional, very very helpful stuff would be:
 VOD/video with timestamp to reproduce the issue.
