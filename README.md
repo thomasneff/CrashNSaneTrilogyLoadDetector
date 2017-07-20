@@ -1,6 +1,9 @@
 # CrashNSaneTrilogyLoadDetector
 Loading Screen Detector (Standalone testing tool and .asl script for LiveSplit) for the Crash N. Sane Trilogy (Crash NST).
 
+# Disclaimer (READ THIS IF YOU TRY IT OUT)
+I'm still tinkering with the detection to make it better. Currently, it sometimes unpauses for 1 frame when it shouldn't, which can be solved by me collecting more data. So the Pause Time should be fairly accurate most of the time, while the "Pause Segments" could be screwed up. Still work in progress.
+
 # How does it work?
 The method works by taking a small "screenshot" (currently 300x100) from your primary display at the center, where "LOADING" is displayed when playing the Crash NST. It then cuts this 300x100 image into patches (currently of size 50x50). From these patches, a color histogram is computed (currently using 16 histogram bins -> [0-15, 16-31, 32-47, ..., 240-255]) of the red, green and blue color channels. These histograms are put into a large vector, which describes our image (feature vector).
 
@@ -35,7 +38,7 @@ For each of these images, also the corresponding feature vectors are saved in "f
 # TODO:
 Currently I'm working on improving the robustness of the tool, before I start working on the .asl script. I want to check if the tool works with videos of multiple runs, my own runs through remote play, all in varying quality. I want to remove, if possible, all wrongly detected load screens.
 
-As far as I can tell, the current version works ~99% of the time with the footage I tested. There are multiple instances in the NST where colors are very similar to "LOADING", which makes it difficult to be correct in all cases.
+As far as I can tell, the current version works ~95% of the time with the footage I tested. There are multiple instances in the NST where colors are very similar to "LOADING", which makes it difficult to be correct in all cases.
 
 # How to Track Issues:
 Please use the github issue tracking in this repository. If you find a wrong detection, please post at least the following information in the issue:
