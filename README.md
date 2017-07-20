@@ -17,6 +17,8 @@ Currently, the tool requires that you have the footage fullscreened on your prim
 
 Currently, it also probably requires your primary monitor to have a resolution of 1080p. This is because the screenshot has a fixed size, and increasing the size to make up for increased resolution (e.g. 4K) would slow down the detection by a lot. Different resolutions also require different feature vectors to be precomputed.
 
+If you do full trilogy run, you'll still need to time your title screen loads. Sorry, that's just because the title screen loads are different than the ingame loads, and I can't keep it real-time while still accounting for those differences.
+
 # UI Options
 ## Start
 Start simply starts the timers of the C# tool. You'll see the currently captured image region in real time, as well as the current histogram matches and required matches to detect a pause.
@@ -36,6 +38,8 @@ For each of these images, also the corresponding feature vectors are saved in "f
 Currently I'm working on improving the robustness of the tool, before I start working on the .asl script. I want to check if the tool works with videos of multiple runs, my own runs through remote play, all in varying quality. I want to remove, if possible, all wrongly detected load screens.
 
 As far as I can tell, the current version works ~99% of the time with the footage I tested. There are multiple instances in the NST where colors are very similar to "LOADING", which makes it difficult to be correct in all cases.
+
+If the tool works 100% consistently, I could also add auto-split functionality to the .asl script, by just splitting on the end of "LOADING", but not sure how necessary that is.
 
 # How to Track Issues:
 Please use the github issue tracking in this repository. If you find a wrong detection, please post at least the following information in the issue:

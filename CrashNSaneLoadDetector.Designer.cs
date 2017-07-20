@@ -186,9 +186,9 @@
 			this.saveDiagnosticCheck.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.saveDiagnosticCheck.Location = new System.Drawing.Point(369, 322);
 			this.saveDiagnosticCheck.Name = "saveDiagnosticCheck";
-			this.saveDiagnosticCheck.Size = new System.Drawing.Size(146, 17);
+			this.saveDiagnosticCheck.Size = new System.Drawing.Size(109, 17);
 			this.saveDiagnosticCheck.TabIndex = 14;
-			this.saveDiagnosticCheck.Text = "Save Disagnostic Images";
+			this.saveDiagnosticCheck.Text = "Save Diagnostics";
 			this.saveDiagnosticCheck.UseVisualStyleBackColor = true;
 			this.saveDiagnosticCheck.CheckedChanged += new System.EventHandler(this.saveDiagnosticCheck_CheckedChanged);
 			// 
