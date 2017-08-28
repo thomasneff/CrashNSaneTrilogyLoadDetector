@@ -188,6 +188,7 @@ namespace autosplittercnn_test
 		private int snapshotFrameCount = 0;
 		private int snapshotMilliseconds = 500;
 		private DateTime timerBegin;
+		private string DiagnosticsFolderName = "CrashNSTDiagnostics/";
 
 		//used as a cutoff for when a match is detected correctly
 		private float varianceOfBinsAllowed = 0.1f;
@@ -310,14 +311,14 @@ namespace autosplittercnn_test
 							wasPaused = currentlyPaused;
 
 							//If diagnostics are enabled: we save snapshots from this segment to a folder.
-							System.IO.Directory.CreateDirectory("pauseSegmentSnapshots/" + snapshotFrameCount.ToString());
+							System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "pauseSegmentSnapshots/" + snapshotFrameCount.ToString());
 
 							for (int idx = 0; idx < segmentSnapshots.Count; idx++)
 							{
 								Bitmap bmp = segmentSnapshots[idx];
 
-								bmp.Save("pauseSegmentSnapshots/" + snapshotFrameCount.ToString() + "/" + idx + "_" + segmentMatchingBins[idx] + ".jpg", ImageFormat.Jpeg);
-								saveFeatureVectorToTxt(segmentFeatureVectors[idx], "features_" + segmentFrameCounts[idx] + "_" + segmentMatchingBins[idx] + ".txt", "pauseSegmentSnapshots/" + snapshotFrameCount.ToString());
+								bmp.Save(DiagnosticsFolderName + "pauseSegmentSnapshots/" + snapshotFrameCount.ToString() + "/" + idx + "_" + segmentMatchingBins[idx] + ".jpg", ImageFormat.Jpeg);
+								saveFeatureVectorToTxt(segmentFeatureVectors[idx], "features_" + segmentFrameCounts[idx] + "_" + segmentMatchingBins[idx] + ".txt", DiagnosticsFolderName + "pauseSegmentSnapshots/" + snapshotFrameCount.ToString());
 							}
 						}
 						//Clear segment data
@@ -427,17 +428,17 @@ namespace autosplittercnn_test
 				//or if we haven't seen a paused frame for at least 30 frames.
 				if ((frameCount > (lastSaveFrame + 10) || (frameCount - lastPausedFrame) > 30) && saveDiagnosticImages)
 				{
-					System.IO.Directory.CreateDirectory("imgs_stopped");
+					System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_stopped");
 
 					try
 					{
-						bmp.Save("imgs_stopped/img_" + frameCount + "_" + matchingBins + ".jpg", ImageFormat.Jpeg);
+						bmp.Save(DiagnosticsFolderName + "imgs_stopped/img_" + frameCount + "_" + matchingBins + ".jpg", ImageFormat.Jpeg);
 					}
 					catch
 					{
 					}
 
-					saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + matchingBins + ".txt", "features_stopped");
+					saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + matchingBins + ".txt", DiagnosticsFolderName + "features_stopped");
 
 					lastSaveFrame = frameCount;
 				}
@@ -449,16 +450,16 @@ namespace autosplittercnn_test
 				//save if we haven't seen a running frame for at least 30 frames (to detect false runs - e.g. aku covering "loading"
 				if ((frameCount - lastRunningFrame) > 10 && saveDiagnosticImages)
 				{
-					System.IO.Directory.CreateDirectory("imgs_running");
+					System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_running");
 					try
 					{
-						bmp.Save("imgs_running/img_" + frameCount + "_" + matchingBins + ".jpg", ImageFormat.Jpeg);
+						bmp.Save(DiagnosticsFolderName + "imgs_running/img_" + frameCount + "_" + matchingBins + ".jpg", ImageFormat.Jpeg);
 					}
 					catch
 					{
 					}
 
-					saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + matchingBins + ".txt", "features_running");
+					saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + matchingBins + ".txt", DiagnosticsFolderName + "features_running");
 
 					lastSaveFrame = frameCount;
 				}
@@ -595,7 +596,8 @@ namespace autosplittercnn_test
 			{
 				if (captureTimer.Enabled == false)
 				{
-					using (var file = File.CreateText("loading_eng.csv"))
+					System.IO.Directory.CreateDirectory(DiagnosticsFolderName);
+					using (var file = File.CreateText(DiagnosticsFolderName + "loading_eng.csv"))
 					{
 						foreach (var list in listOfFeatureVectors)
 						{
@@ -655,7 +657,8 @@ namespace autosplittercnn_test
 		{
 			currentRecordCount++;
 			listOfFeatureVectors.Add(lastFeatures);
-			using (var file = File.CreateText("loading_eng_features.txt"))
+			System.IO.Directory.CreateDirectory(DiagnosticsFolderName);
+			using (var file = File.CreateText(DiagnosticsFolderName + "loading_eng_features.txt"))
 			{
 				file.Write("private int[,] listOfFeatureVectorsEng = {\n");
 				foreach (var list in listOfFeatureVectors)
