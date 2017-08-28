@@ -45,6 +45,8 @@ Currently I'm working on improving the robustness of the tool, before I start wo
 
 As far as I can tell, the current version works ~95% of the time with the footage I tested. There are multiple instances in the NST where colors are very similar to "LOADING", which makes it difficult to be correct in all cases.
 
+I also want to add a simple python script (for platform independance) which just takes a recorded video and reports the loadless time (if that is something that could be needed).
+
 If the tool works 100% consistently, I could also add auto-split functionality to the .asl script, by just splitting on the end of "LOADING", but not sure how necessary that is.
 
 # How to Track Issues:
