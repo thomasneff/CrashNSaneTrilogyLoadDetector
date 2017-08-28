@@ -1,6 +1,9 @@
 # CrashNSaneTrilogyLoadDetector
 Loading Screen Detector (Standalone testing tool and .asl script for LiveSplit) for the Crash N. Sane Trilogy (Crash NST).
 
+# Special Thanks
+Special thanks go to McCrodi from the Crash Speedrunning Discord, who helped me by providing 1080p/720p captured data and general feedback regarding the functionality.
+
 # Disclaimer (READ THIS IF YOU TRY IT OUT)
 I'm still tinkering with the detection to make it better. Currently, it sometimes unpauses for 1 frame when it shouldn't, which can be solved by me collecting more data. So the Pause Time should be fairly accurate most of the time, while the "Pause Segments" could be screwed up. Still work in progress.
 
