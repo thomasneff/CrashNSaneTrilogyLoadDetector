@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CrashNSaneLoadDetector;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -178,7 +179,7 @@ namespace autosplittercnn_test
 		private int numberOfBins = 16;
 
 		//float percent_of_bins_correct = 0.7f; //percentage of histogram bins which have to match for loading detection
-		private int numberOfBinsCorrect = 515;
+		private int numberOfBinsCorrect = 540;
 
 		//Just used for diagnostics, to check how fast the detection works
 		private DateTime oldGameTime;
@@ -217,6 +218,9 @@ namespace autosplittercnn_test
 
 		private bool wasPaused = false;
 
+		private KeyHandler StartKeyHandler;
+		private KeyHandler ResetKeyHandler;
+
 		#endregion Private Fields
 
 		#region Public Constructors
@@ -236,8 +240,8 @@ namespace autosplittercnn_test
 			realTimer = new System.Timers.Timer();
 			gameTimer.Interval = timerIntervalMilliseconds;
 			realTimer.Interval = timerIntervalMilliseconds;
-			gameTimer.Elapsed += countGameTime;
-			realTimer.Elapsed += countRealTime;
+			gameTimer.Elapsed += timerValueUpdate;
+			realTimer.Elapsed += timerValueUpdate;
 			snapshotMilliseconds = milliSecondsBetweenSnapshots;
 			listOfFeatureVectors = new List<List<int>>();
 			histogramMatches = new List<bool>();
@@ -247,11 +251,42 @@ namespace autosplittercnn_test
 			segmentMatchingBins = new List<int>();
 			segmentFrameCounts = new List<int>();
 			segmentFeatureVectors = new List<List<int>>();
+
+			requiredMatchDisplayLabel.Text = numberOfBinsCorrect.ToString();
+
+			StartKeyHandler = new KeyHandler(Keys.NumPad1, this);
+			StartKeyHandler.Register();
+
+			ResetKeyHandler = new KeyHandler(Keys.NumPad3, this);
+			ResetKeyHandler.Register();
 		}
 
 		#endregion Public Constructors
 
 		#region Private Methods
+
+		private void HandleHotkey(ref Message m)
+		{
+			// Do stuff...
+			Keys key = (Keys)m.WParam.ToInt32();
+
+			if(key == Keys.NumPad3)
+			{
+				resetButton_Click(this, null);
+			}
+			else if (key == Keys.NumPad1)
+			{
+				startButton_Click(this, null);
+			}
+
+		}
+
+		protected override void WndProc(ref Message m)
+		{
+			if (m.Msg == Constants.WM_HOTKEY_MSG_ID)
+				HandleHotkey(ref m);
+			base.WndProc(ref m);
+		}
 
 		private static Bitmap CaptureImage(int x, int y, int width, int height)
 		{
@@ -321,8 +356,10 @@ namespace autosplittercnn_test
 			{
 				//loading done
 				loadTime = loadTimeTemp + (DateTime.Now - loadStart);
+				wasPaused = currentlyPaused;
 				try
 				{
+					
 					Invoke(new Action(() =>
 					{
 						pauseSegmentList.Items.Add(DateTime.Now - loadStart);
@@ -330,7 +367,7 @@ namespace autosplittercnn_test
 						if (saveDiagnosticImages)
 						{
 							//Set this early, otherwise we might enter multiple times if there are a lot of images to save
-							wasPaused = currentlyPaused;
+							
 
 							//If diagnostics are enabled: we save snapshots from this segment to a folder.
 							System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "pauseSegmentSnapshots/" + snapshotFrameCount.ToString());
@@ -381,6 +418,12 @@ namespace autosplittercnn_test
 				//if the form is closing, we just do nothing.
 			}
 			wasPaused = currentlyPaused;
+		}
+
+		private void timerValueUpdate(object source, ElapsedEventArgs e)
+		{
+			countRealTime(source, e);
+			countGameTime(source, e);
 		}
 
 		private void countRealTime(object source, ElapsedEventArgs e)
@@ -551,7 +594,7 @@ namespace autosplittercnn_test
 
 					int xStart = patchX * (patchSizeX * stride);
 					int yStart = patchY * (patchSizeX * stride);
-					int xEnd = (patchX + 1) * (patchSizeY * stride);
+					int xEnd = (patchX + 1) * (patchSizeX * stride);
 					int yEnd = (patchY + 1) * (patchSizeY * stride);
 
 					for (int x_index = xStart; x_index < xEnd; x_index += stride)
@@ -560,6 +603,8 @@ namespace autosplittercnn_test
 						{
 							yAdd = y_index * bmpStride;
 
+							//TODO: I'm apparently still too dumb to index bitmaps. <_< + 0 / + 1 / + 2...
+							//      I think I assumed it was ARGB, but it is RGBA...
 							r = (int)(data[(x_index * 4) + (yAdd) + 1]);
 							g = (int)(data[(x_index * 4) + (yAdd) + 2]);
 							b = (int)(data[(x_index * 4) + (yAdd) + 3]);
@@ -610,9 +655,59 @@ namespace autosplittercnn_test
 			saveDiagnosticImages = saveDiagnosticCheck.Checked;
 		}
 
+
+		private void resetButton_Click(object sender, EventArgs e)
+		{
+			resetState();
+			captureTimer.Enabled = false;
+			gameTimer.Enabled = false;
+			realTimer.Enabled = false;
+		}
+
+		private void resetState()
+		{
+			oldGameTime = DateTime.Now;
+			oldRealTime = DateTime.Now;
+			timerBegin = DateTime.Now;
+			loadStart = DateTime.Now;
+			realTime = new TimeSpan(0);
+			gameTime = new TimeSpan(0);
+			loadTime = new TimeSpan(0);
+			loadTimeTemp = new TimeSpan(0);
+
+			currentlyPaused = false;
+			frameCount = 0;
+			lastRunningFrame = 0;
+			lastPausedFrame = 0;
+			lastSaveFrame = 0;
+
+			snapshotMilliseconds = milliSecondsBetweenSnapshots;
+			msElapsed.Clear();
+
+			foreach (Bitmap bmp in segmentSnapshots)
+			{
+				bmp.Dispose();
+			}
+			segmentSnapshots.Clear();
+			segmentMatchingBins.Clear();
+			segmentFeatureVectors.Clear();
+			segmentFrameCounts.Clear();
+			pauseSegmentList.Items.Clear();
+			
+			gameTimer.Enabled = false;
+			realTimer.Enabled = false;
+		}
+
 		private void startButton_Click(object sender, EventArgs e)
 		{
-			captureTimer.Enabled = !captureTimer.Enabled;
+
+			if(captureTimer.Enabled == true)
+			{
+				return;
+			}
+
+
+			captureTimer.Enabled = true;
 
 			if (recordMode)
 			{
@@ -632,35 +727,9 @@ namespace autosplittercnn_test
 			}
 			else
 			{
-				oldGameTime = DateTime.Now;
-				oldRealTime = DateTime.Now;
-				timerBegin = DateTime.Now;
-				loadStart = DateTime.Now;
-				realTime = new TimeSpan(0);
-				gameTime = new TimeSpan(0);
-				loadTime = new TimeSpan(0);
-				loadTimeTemp = new TimeSpan(0);
-
-				currentlyPaused = false;
-				frameCount = 0;
-				lastRunningFrame = 0;
-				lastPausedFrame = 0;
-				lastSaveFrame = 0;
-
-				snapshotMilliseconds = milliSecondsBetweenSnapshots;
-				msElapsed.Clear();
-
-				foreach (Bitmap bmp in segmentSnapshots)
-				{
-					bmp.Dispose();
-				}
-				segmentSnapshots.Clear();
-				segmentMatchingBins.Clear();
-				segmentFeatureVectors.Clear();
-				segmentFrameCounts.Clear();
-
-				gameTimer.Enabled = !gameTimer.Enabled;
-				realTimer.Enabled = !realTimer.Enabled;
+				resetState();
+				gameTimer.Enabled = true;
+				realTimer.Enabled = true;
 			}
 		}
 
@@ -711,5 +780,7 @@ namespace autosplittercnn_test
 				//yeah, silent catch is bad, I don't care
 			}
 		}
+
+		
 	}
 }

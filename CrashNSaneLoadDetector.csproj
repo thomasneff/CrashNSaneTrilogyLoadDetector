@@ -61,12 +61,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="CrashNSaneLoadDetector.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="CrashNSaneLoadDetector.Designer.cs">
       <DependentUpon>CrashNSaneLoadDetector.cs</DependentUpon>
     </Compile>
+    <Compile Include="KeyHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="CrashNSaneLoadDetector.resx">

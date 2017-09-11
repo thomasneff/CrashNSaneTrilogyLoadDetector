@@ -46,6 +46,7 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.requiredMatchDisplayLabel = new System.Windows.Forms.Label();
 			this.recordCurrentButton = new System.Windows.Forms.Button();
+			this.resetButton = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.imageDisplay)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -53,7 +54,7 @@
 			// 
 			this.startButton.Location = new System.Drawing.Point(12, 397);
 			this.startButton.Name = "startButton";
-			this.startButton.Size = new System.Drawing.Size(75, 23);
+			this.startButton.Size = new System.Drawing.Size(43, 23);
 			this.startButton.TabIndex = 0;
 			this.startButton.Text = "Start";
 			this.startButton.UseVisualStyleBackColor = true;
@@ -153,7 +154,7 @@
 			// pauseSegmentList
 			// 
 			this.pauseSegmentList.FormattingEnabled = true;
-			this.pauseSegmentList.Location = new System.Drawing.Point(221, 299);
+			this.pauseSegmentList.Location = new System.Drawing.Point(265, 299);
 			this.pauseSegmentList.Name = "pauseSegmentList";
 			this.pauseSegmentList.Size = new System.Drawing.Size(142, 121);
 			this.pauseSegmentList.TabIndex = 11;
@@ -162,7 +163,7 @@
 			// 
 			this.label4.AutoSize = true;
 			this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label4.Location = new System.Drawing.Point(217, 269);
+			this.label4.Location = new System.Drawing.Point(261, 269);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(146, 22);
 			this.label4.TabIndex = 12;
@@ -171,7 +172,7 @@
 			// recordCheck
 			// 
 			this.recordCheck.AutoSize = true;
-			this.recordCheck.Location = new System.Drawing.Point(369, 299);
+			this.recordCheck.Location = new System.Drawing.Point(413, 299);
 			this.recordCheck.Name = "recordCheck";
 			this.recordCheck.Size = new System.Drawing.Size(105, 17);
 			this.recordCheck.TabIndex = 13;
@@ -184,7 +185,7 @@
 			this.saveDiagnosticCheck.AutoSize = true;
 			this.saveDiagnosticCheck.Checked = true;
 			this.saveDiagnosticCheck.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.saveDiagnosticCheck.Location = new System.Drawing.Point(369, 322);
+			this.saveDiagnosticCheck.Location = new System.Drawing.Point(413, 322);
 			this.saveDiagnosticCheck.Name = "saveDiagnosticCheck";
 			this.saveDiagnosticCheck.Size = new System.Drawing.Size(109, 17);
 			this.saveDiagnosticCheck.TabIndex = 14;
@@ -214,7 +215,7 @@
 			// recordCurrentButton
 			// 
 			this.recordCurrentButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-			this.recordCurrentButton.Location = new System.Drawing.Point(93, 398);
+			this.recordCurrentButton.Location = new System.Drawing.Point(117, 397);
 			this.recordCurrentButton.Name = "recordCurrentButton";
 			this.recordCurrentButton.Size = new System.Drawing.Size(116, 23);
 			this.recordCurrentButton.TabIndex = 17;
@@ -222,11 +223,22 @@
 			this.recordCurrentButton.UseVisualStyleBackColor = true;
 			this.recordCurrentButton.Click += new System.EventHandler(this.recordCurrentButton_Click);
 			// 
+			// resetButton
+			// 
+			this.resetButton.Location = new System.Drawing.Point(61, 397);
+			this.resetButton.Name = "resetButton";
+			this.resetButton.Size = new System.Drawing.Size(50, 23);
+			this.resetButton.TabIndex = 18;
+			this.resetButton.Text = "Reset";
+			this.resetButton.UseVisualStyleBackColor = true;
+			this.resetButton.Click += new System.EventHandler(this.resetButton_Click);
+			// 
 			// CrashNSaneLoadDetector
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(526, 432);
+			this.Controls.Add(this.resetButton);
 			this.Controls.Add(this.recordCurrentButton);
 			this.Controls.Add(this.requiredMatchDisplayLabel);
 			this.Controls.Add(this.label6);
@@ -274,6 +286,7 @@
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Label requiredMatchDisplayLabel;
 		private System.Windows.Forms.Button recordCurrentButton;
+		private System.Windows.Forms.Button resetButton;
 	}
 }
 
