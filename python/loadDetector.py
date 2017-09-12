@@ -17,6 +17,7 @@ import sys
 
 from featureDetection import isLoading
 from featureDetection import extractFeatures
+from featureDetection import DEBUG_OUTPUT
 
 featureVectorResolutionX = 1920.0
 featureVectorResolutionY = 1080.0
@@ -109,6 +110,7 @@ class FrameProcess(Process):
         queue_obj['frameCounterPaused'] = self.frameCounterPaused
         queue_obj['frame'] = area_of_interest_300x100
         queue_obj['matching_bins'] = matching_bins
+        queue_obj['is_loading'] = loading
 
         self.output_queue.put(queue_obj)
 
@@ -173,7 +175,7 @@ def main():
 
     # Just some diagnostics
     matchingBinsHistogram = np.zeros(577)
-
+    is_loading = None
     while True:
         ret = cap_read(cap)
 
@@ -190,7 +192,17 @@ def main():
                     wr.writerow(features)
                     cv2.imwrite('features/' + str(result['frameCounterTotal']) + '.png', result['frame'])
 
-            print("Total: {}, Running: {}, Paused: {}".format(result['frameCounterTotal'], result['frameCounterRunning'], result['frameCounterPaused']))
+            if result['is_loading'] != is_loading:
+                is_loading = result['is_loading']
+
+                if is_loading:
+                    print("LOADING at frame {}!".format(result['frameCounterTotal']))
+                else:
+                    print("Not LOADING at frame {}!".format(result['frameCounterTotal']))
+
+            if DEBUG_OUTPUT == True:
+                print("Total: {}, Running: {}, Paused: {}".format(result['frameCounterTotal'], result['frameCounterRunning'], result['frameCounterPaused']))
+
             cv2.imshow('Threaded Video', result['frame'])
             ch = cv2.waitKey(5)
 
