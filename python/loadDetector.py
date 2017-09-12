@@ -1,10 +1,13 @@
 import numpy as np
 import cv2
-
+import matplotlib.pyplot as plt
 from multiprocessing import Process, Queue
 from queue import Empty
 
 import time
+import csv
+import datetime
+import sys
 
 # Boilerplate opencv video processing code from
 # https://stackoverflow.com/questions/42284122/opencv-python-multi-threading-for-live-facial-recognition
@@ -13,6 +16,7 @@ import time
 # import video
 
 from featureDetection import isLoading
+from featureDetection import extractFeatures
 
 featureVectorResolutionX = 1920.0
 featureVectorResolutionY = 1080.0
@@ -76,14 +80,14 @@ class FrameProcess(Process):
         # Crop "LOADING" area out of the frame
         area_of_interest = frame[top_y:bot_y, left_x:right_x]
 
-        # Resize to 300x100, as the features have been computed on that.
+        # Resize to 300x100, as the features_second have been computed on that.
         area_of_interest_300x100 = cv2.resize(area_of_interest, (300, 100))
 
 
         # TODO: update framecounters using the detection method
         self.frameCounterTotal = self.frameCounterTotal + 1
-
-        if isLoading(area_of_interest_300x100):
+        loading, matching_bins = isLoading(area_of_interest_300x100)
+        if loading:
             self.frameCounterPaused = self.frameCounterPaused + 1
         else:
             self.frameCounterRunning = self.frameCounterRunning + 1
@@ -104,7 +108,7 @@ class FrameProcess(Process):
         queue_obj['frameCounterRunning'] = self.frameCounterRunning
         queue_obj['frameCounterPaused'] = self.frameCounterPaused
         queue_obj['frame'] = area_of_interest_300x100
-
+        queue_obj['matching_bins'] = matching_bins
 
         self.output_queue.put(queue_obj)
 
@@ -126,7 +130,7 @@ def main():
             #try:
             #    Input_Queue.get()
             #except Empty:
-            #    # Handle empty queue here
+                # Handle empty queue here
             #    pass
 
         Input_Queue.put(frame)
@@ -136,7 +140,9 @@ def main():
         if ret:
             put_frame(frame)
 
-    cap = cv2.VideoCapture('test.mp4')
+        return ret
+
+    cap = cv2.VideoCapture(sys.argv[1])
 
     fps = cap.get(cv2.CAP_PROP_FPS)
 
@@ -164,13 +170,25 @@ def main():
     # cv2.namedWindow('Threaded Video', cv2.WINDOW_NORMAL)
     cv2.namedWindow('Threaded Video', cv2.WINDOW_AUTOSIZE)
     cv2.resizeWindow('image', 300, 100)
+
+    # Just some diagnostics
+    matchingBinsHistogram = np.zeros(577)
+
     while True:
-        cap_read(cap)
+        ret = cap_read(cap)
 
 
 
         if not Output_Queue.empty():
             result = Output_Queue.get()
+            features = extractFeatures(result['frame'])
+            matchingBinsHistogram[result['matching_bins']] += 1
+
+            if result['matching_bins'] >= 480 and result['matching_bins'] <= 520:
+                with open('features/' + str(result['frameCounterTotal']) + '.txt', 'w') as myfile:
+                    wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+                    wr.writerow(features)
+                    cv2.imwrite('features/' + str(result['frameCounterTotal']) + '.png', result['frame'])
 
             print("Total: {}, Running: {}, Paused: {}".format(result['frameCounterTotal'], result['frameCounterRunning'], result['frameCounterPaused']))
             cv2.imshow('Threaded Video', result['frame'])
@@ -178,9 +196,51 @@ def main():
 
         if ch == ord(' '):
             threaded_mode = not threaded_mode
-        if ch == 27:
+        if ch == 32:
+            # Space is used to collect feature vectors.
+            with open('features/' + str(result['frameCounterTotal']) + '.txt', 'w') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
+                wr.writerow(features)
+                cv2.imwrite('features/' + str(result['frameCounterTotal']) + '.png', result['frame'])
+
+        if ch == 27 or ret == False:
             break
     cv2.destroyAllWindows()
+
+
+    # Save matching_bins histogram (for diagnosis)
+    np.savetxt('matching_bins_1.txt', matchingBinsHistogram, fmt='%d', delimiter=',')
+    fig, ax = plt.subplots()
+    histogram_width = 1
+    #hist = [sum(matchingBinsHistogram[current: current+histogram_width]) for current in range(0, len(matchingBinsHistogram), histogram_width)]
+    hist = matchingBinsHistogram
+    bins = np.linspace(0, len(hist) + 1, len(hist) + 1)
+    width = 2 * (bins[1] - bins[0])
+    center = (bins[:-1] + bins[1:]) / 2
+    plt.yscale('log')
+
+    plt.bar(center, hist, align='center', width=width)
+    ax.bar(center, hist, align='center', width=width)
+    fig.set_size_inches(18.5, 10.5)
+    fig.savefig("matching_bins_1.png")
+
+    print("")
+    print("--------- SUMMARY ---------")
+    print("Frames: Total: {}, Running: {}, Paused: {}".format(result['frameCounterTotal'], result['frameCounterRunning'],
+                                                      result['frameCounterPaused']))
+
+    # Compute times from frames and fps
+    seconds_total = result['frameCounterTotal'] / fps
+    seconds_running = result['frameCounterRunning'] / fps
+    seconds_paused = result['frameCounterPaused'] / fps
+
+    print("Time (video @ {} fps): Total: {}, Running: {}, Paused: {}".format(fps,
+                                                                             datetime.timedelta(seconds=seconds_total),
+                                                                             datetime.timedelta(seconds=seconds_running),
+                                                                             datetime.timedelta(seconds=seconds_paused)
+                                                                             ))
+
+    print("---------------------------")
 
 if __name__ == '__main__':
     main()

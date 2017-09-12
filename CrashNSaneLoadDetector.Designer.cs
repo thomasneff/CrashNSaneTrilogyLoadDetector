@@ -47,6 +47,7 @@
 			this.requiredMatchDisplayLabel = new System.Windows.Forms.Label();
 			this.recordCurrentButton = new System.Windows.Forms.Button();
 			this.resetButton = new System.Windows.Forms.Button();
+			this.button1 = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.imageDisplay)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -233,11 +234,23 @@
 			this.resetButton.UseVisualStyleBackColor = true;
 			this.resetButton.Click += new System.EventHandler(this.resetButton_Click);
 			// 
+			// button1
+			// 
+			this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
+			this.button1.Location = new System.Drawing.Point(409, 369);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(109, 23);
+			this.button1.TabIndex = 19;
+			this.button1.Text = "Feature from File";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.button1_Click);
+			// 
 			// CrashNSaneLoadDetector
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(526, 432);
+			this.Controls.Add(this.button1);
 			this.Controls.Add(this.resetButton);
 			this.Controls.Add(this.recordCurrentButton);
 			this.Controls.Add(this.requiredMatchDisplayLabel);
@@ -287,6 +300,7 @@
 		private System.Windows.Forms.Label requiredMatchDisplayLabel;
 		private System.Windows.Forms.Button recordCurrentButton;
 		private System.Windows.Forms.Button resetButton;
+		private System.Windows.Forms.Button button1;
 	}
 }
 
