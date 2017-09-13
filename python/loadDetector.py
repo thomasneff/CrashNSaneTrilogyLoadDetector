@@ -187,10 +187,10 @@ def main():
             matchingBinsHistogram[result['matching_bins']] += 1
 
             if result['matching_bins'] >= 480 and result['matching_bins'] < 520:
-                with open('features/' + str(result['frameCounterTotal']) + '_' + result['matching_bins'] + '.txt', 'w') as myfile:
+                with open('features/' + str(result['frameCounterTotal']) + '_' + str(result['matching_bins']) + '.txt', 'w') as myfile:
                     wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
                     wr.writerow(features)
-                    cv2.imwrite('features/' + str(result['frameCounterTotal']) + '_' + result['matching_bins'] + '.png', result['frame'])
+                    cv2.imwrite('features/' + str(result['frameCounterTotal']) + '_' + str(result['matching_bins']) + '.png', result['frame'])
 
             if result['is_loading'] != is_loading:
                 is_loading = result['is_loading']
@@ -210,10 +210,10 @@ def main():
             threaded_mode = not threaded_mode
         if ch == 32:
             # Space is used to collect feature vectors.
-            with open('features/' + str(result['frameCounterTotal']) + '.txt', 'w') as myfile:
+            with open('features/' + str(result['frameCounterTotal']) + '_' + str(result['matching_bins']) + '.txt', 'w') as myfile:
                 wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
                 wr.writerow(features)
-                cv2.imwrite('features/' + str(result['frameCounterTotal']) + '.png', result['frame'])
+                cv2.imwrite('features/' + str(result['frameCounterTotal']) + '_' + str(result['matching_bins']) + '.png', result['frame'])
 
         if ch == 27 or ret == False:
             break

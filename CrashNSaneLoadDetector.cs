@@ -21,9 +21,11 @@ namespace autosplittercnn_test
 		private float featureVectorResolutionX = 1920.0f;
 		private float featureVectorResolutionY = 1080.0f;
 
+		private float captureAspectRatioX = 16.0f;
+		private float captureAspectRatioY = 9.0f;
 
-		float cropOffsetX = 0.0f;
-		float cropOffsetY = -40.0f;
+		private float cropOffsetX = 0.0f;
+		private float cropOffsetY = -40.0f;
 		private System.Timers.Timer captureTimer;
 		private bool currentlyPaused = false;
 
@@ -215,7 +217,7 @@ namespace autosplittercnn_test
 		private string DiagnosticsFolderName = "CrashNSTDiagnostics/";
 
 		//used as a cutoff for when a match is detected correctly
-		private float varianceOfBinsAllowed = 0.1f;
+		private float varianceOfBinsAllowed = 0.2f;
 
 		private bool wasPaused = false;
 
@@ -712,6 +714,7 @@ namespace autosplittercnn_test
 
 			var resolution_factor_y = (height / featureVectorResolutionY);
 
+			
 
 			actual_crop_size_x = captureSize.Width * resolution_factor_x;
 
@@ -721,6 +724,36 @@ namespace autosplittercnn_test
 			actual_offset_x = cropOffsetX * resolution_factor_x;
 
 			actual_offset_y = cropOffsetY * resolution_factor_y;
+
+			//Scale offset and sizes depending on actual vs. needed aspect ratio
+			
+			if(((float)width / (float)height) > (captureAspectRatioX / captureAspectRatioY))
+			{
+
+				var image_region = (float)height / (captureAspectRatioY / captureAspectRatioX);
+
+				//Aspect ratio is larger than original
+				var black_bar_width_total = (float)width - image_region;
+
+				//Compute space occupied by black border relative to total width
+				var adjust_factor = ((float)(width - black_bar_width_total) / (float)width);
+				actual_crop_size_x *= adjust_factor;
+				actual_offset_x *= adjust_factor;
+			}
+			else
+			{
+
+				var image_region = (float)width / (captureAspectRatioX / captureAspectRatioY);
+
+				//Aspect ratio is larger than original
+				var black_bar_height_total = (float)height - image_region;
+
+				//Compute space occupied by black border relative to total width
+				var adjust_factor = ((float)(height - black_bar_height_total) / (float)height);
+				actual_crop_size_y *= adjust_factor;
+				actual_offset_y *= adjust_factor;
+			}
+
 
 
 			center_of_frame_x = width / 2;
