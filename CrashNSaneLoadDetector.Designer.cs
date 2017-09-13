@@ -48,6 +48,8 @@
 			this.recordCurrentButton = new System.Windows.Forms.Button();
 			this.resetButton = new System.Windows.Forms.Button();
 			this.button1 = new System.Windows.Forms.Button();
+			this.processListBox = new System.Windows.Forms.ListBox();
+			this.label7 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.imageDisplay)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -245,11 +247,32 @@
 			this.button1.UseVisualStyleBackColor = true;
 			this.button1.Click += new System.EventHandler(this.button1_Click);
 			// 
+			// processListBox
+			// 
+			this.processListBox.FormattingEnabled = true;
+			this.processListBox.Location = new System.Drawing.Point(537, 299);
+			this.processListBox.Name = "processListBox";
+			this.processListBox.Size = new System.Drawing.Size(142, 121);
+			this.processListBox.TabIndex = 20;
+			this.processListBox.SelectedIndexChanged += new System.EventHandler(this.processListBox_SelectedIndexChanged);
+			// 
+			// label7
+			// 
+			this.label7.AutoSize = true;
+			this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label7.Location = new System.Drawing.Point(533, 268);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(144, 22);
+			this.label7.TabIndex = 21;
+			this.label7.Text = "Process Capture";
+			// 
 			// CrashNSaneLoadDetector
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(526, 432);
+			this.ClientSize = new System.Drawing.Size(682, 432);
+			this.Controls.Add(this.label7);
+			this.Controls.Add(this.processListBox);
 			this.Controls.Add(this.button1);
 			this.Controls.Add(this.resetButton);
 			this.Controls.Add(this.recordCurrentButton);
@@ -301,6 +324,8 @@
 		private System.Windows.Forms.Button recordCurrentButton;
 		private System.Windows.Forms.Button resetButton;
 		private System.Windows.Forms.Button button1;
+		private System.Windows.Forms.ListBox processListBox;
+		private System.Windows.Forms.Label label7;
 	}
 }
 

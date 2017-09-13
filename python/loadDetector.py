@@ -186,11 +186,11 @@ def main():
             features = extractFeatures(result['frame'])
             matchingBinsHistogram[result['matching_bins']] += 1
 
-            if result['matching_bins'] >= 480 and result['matching_bins'] <= 520:
-                with open('features/' + str(result['frameCounterTotal']) + '.txt', 'w') as myfile:
+            if result['matching_bins'] >= 480 and result['matching_bins'] < 520:
+                with open('features/' + str(result['frameCounterTotal']) + '_' + result['matching_bins'] + '.txt', 'w') as myfile:
                     wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
                     wr.writerow(features)
-                    cv2.imwrite('features/' + str(result['frameCounterTotal']) + '.png', result['frame'])
+                    cv2.imwrite('features/' + str(result['frameCounterTotal']) + '_' + result['matching_bins'] + '.png', result['frame'])
 
             if result['is_loading'] != is_loading:
                 is_loading = result['is_loading']

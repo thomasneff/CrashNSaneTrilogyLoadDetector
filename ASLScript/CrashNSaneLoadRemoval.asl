@@ -258,7 +258,6 @@ update
     vars.loading = false;
   }
 	
-  
   //to check if we are in "LOADING" or not, we simply compare every new feature vector to a precomputed average of the load screen, with some tolerance
   //to make it more robust (e.g. against Aku Aku flying inside the "LOADING" text)
   //TODO: this probably only works @ 1080p atm, would need to increase screen region and patch size accordingly for e.g. 4k
