@@ -1,4 +1,4 @@
-﻿namespace autosplittercnn_test
+﻿namespace CrashNSaneLoadDetector
 {
 	partial class CrashNSaneLoadDetector
 	{
