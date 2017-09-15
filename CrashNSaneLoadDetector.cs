@@ -49,6 +49,8 @@ namespace CrashNSaneLoadDetector
 		private int milliSecondsBetweenSnapshots = 500;
 		private List<long> msElapsed;
 
+
+
 		private int numberOfBins = 16;
 
 		//float percent_of_bins_correct = 0.7f; //percentage of histogram bins which have to match for loading detection
@@ -96,6 +98,10 @@ namespace CrashNSaneLoadDetector
 
 		private Process[] processList;
 
+		private Rectangle selectionRectanglePreviewBox;
+		private Point selectionTopLeft = new Point(0, 0);
+		private Point selectionBottomRight = new Point(0, 0);
+
 		//negative -> screen indices, other -> index to processList
 		private int processCaptureIndex = -1;
 		private int numScreens = 1;
@@ -130,6 +136,12 @@ namespace CrashNSaneLoadDetector
 			segmentMatchingBins = new List<int>();
 			segmentFrameCounts = new List<int>();
 			segmentFeatureVectors = new List<List<int>>();
+
+			selectionTopLeft = new Point(0, 0);
+			selectionBottomRight = new Point(previewPictureBox.Width, previewPictureBox.Height);
+
+			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
+
 
 			requiredMatchDisplayLabel.Text = numberOfBinsCorrect.ToString();
 
@@ -247,12 +259,24 @@ namespace CrashNSaneLoadDetector
 
 				Point screenCenter = new Point(screenRect.Width / 2, screenRect.Height / 2);
 
+
+				//Change size according to selected crop
+				screenRect.Width = (int)(imageCaptureInfo.crop_coordinate_right - imageCaptureInfo.crop_coordinate_left);
+				screenRect.Height = (int)(imageCaptureInfo.crop_coordinate_bottom - imageCaptureInfo.crop_coordinate_top);
+
 				//Compute crop coordinates and width/ height based on resoution
 				ImageCapture.SizeAdjustedCropAndOffset(screenRect.Width, screenRect.Height, ref imageCaptureInfo);
 
+				//Adjust for crop offset
+				imageCaptureInfo.center_of_frame_x += imageCaptureInfo.crop_coordinate_left;
+				imageCaptureInfo.center_of_frame_y += imageCaptureInfo.crop_coordinate_top;
+
 				//Adjust for selected screen offset
 				imageCaptureInfo.center_of_frame_x += selected_screen.Bounds.X;
-				imageCaptureInfo.center_of_frame_x += selected_screen.Bounds.Y;
+				imageCaptureInfo.center_of_frame_y += selected_screen.Bounds.Y;
+
+				
+				
 
 				b = ImageCapture.CaptureFromDisplay(ref imageCaptureInfo);
 			}
@@ -272,10 +296,84 @@ namespace CrashNSaneLoadDetector
 				if ((int)handle == 0)
 					return b;
 
-				b = ImageCapture.PrintWindow(handle, ref imageCaptureInfo);
+				b = ImageCapture.PrintWindow(handle, ref imageCaptureInfo, useCrop: true);
 			}
 
 			
+			return b;
+		}
+
+		private Bitmap CaptureImageFullPreview(bool useCrop = false)
+		{
+			Bitmap b = new Bitmap(1, 1);
+
+			//Full screen capture
+			if (processCaptureIndex < 0)
+			{
+				Screen selected_screen = Screen.AllScreens[-processCaptureIndex - 1];
+				Rectangle screenRect = selected_screen.Bounds;
+
+				Point screenCenter = new Point(screenRect.Width / 2, screenRect.Height / 2);
+
+				if(useCrop)
+				{
+					//Change size according to selected crop
+					screenRect.Width = (int)(imageCaptureInfo.crop_coordinate_right - imageCaptureInfo.crop_coordinate_left);
+					screenRect.Height = (int)(imageCaptureInfo.crop_coordinate_bottom - imageCaptureInfo.crop_coordinate_top);
+				}
+				
+
+				//Compute crop coordinates and width/ height based on resoution
+				ImageCapture.SizeAdjustedCropAndOffset(screenRect.Width, screenRect.Height, ref imageCaptureInfo);
+
+
+				imageCaptureInfo.actual_crop_size_x = 2 * imageCaptureInfo.center_of_frame_x;
+				imageCaptureInfo.actual_crop_size_y = 2 * imageCaptureInfo.center_of_frame_y;
+
+				if(useCrop)
+				{
+					//Adjust for crop offset
+					imageCaptureInfo.center_of_frame_x += imageCaptureInfo.crop_coordinate_left;
+					imageCaptureInfo.center_of_frame_y += imageCaptureInfo.crop_coordinate_top;
+				}
+
+				//Adjust for selected screen offset
+				imageCaptureInfo.center_of_frame_x += selected_screen.Bounds.X;
+				imageCaptureInfo.center_of_frame_y += selected_screen.Bounds.Y;
+
+				imageCaptureInfo.actual_offset_x = 0;
+				imageCaptureInfo.actual_offset_y = 0;
+
+				b = ImageCapture.CaptureFromDisplay(ref imageCaptureInfo);
+
+				imageCaptureInfo.actual_offset_x = cropOffsetX;
+				imageCaptureInfo.actual_offset_y = cropOffsetY;
+
+
+
+			}
+			else
+			{
+				IntPtr handle = new IntPtr(0);
+
+				if (processCaptureIndex >= processList.Length)
+					return b;
+
+				if (processCaptureIndex != -1)
+				{
+					handle = processList[processCaptureIndex].MainWindowHandle;
+				}
+				//Capture from specific process
+				processList[processCaptureIndex].Refresh();
+				if ((int)handle == 0)
+					return b;
+
+			
+
+				b = ImageCapture.PrintWindow(handle, ref imageCaptureInfo, full:true, useCrop:useCrop);
+			}
+
+
 			return b;
 		}
 
@@ -732,6 +830,72 @@ namespace CrashNSaneLoadDetector
 		private void processListBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			processCaptureIndex = processListBox.SelectedIndex - numScreens;
+			selectionTopLeft = new Point(0, 0);
+			selectionBottomRight = new Point(previewPictureBox.Width, previewPictureBox.Height);
+			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
+
+			DrawPreview();
+
+		}
+
+		private void DrawPreview()
+		{
+		
+			imageCaptureInfo.captureSizeX = previewPictureBox.Width;
+			imageCaptureInfo.captureSizeY = previewPictureBox.Height;
+
+			//Show something in the preview
+			Bitmap capture_image = CaptureImageFullPreview();
+
+
+			//Draw selection rectangle
+			using (Graphics g = Graphics.FromImage(capture_image))
+			{
+				Pen drawing_pen = new Pen(Color.Magenta, 8.0f);
+				drawing_pen.Alignment = PenAlignment.Inset;
+				g.DrawRectangle(drawing_pen, selectionRectanglePreviewBox);
+
+			}
+
+			previewPictureBox.Image = capture_image;
+
+			
+
+
+			//Compute image crop coordinates according to selection rectangle
+
+			//Get raw image size from imageCaptureInfo.actual_crop_size to compute scaling between raw and rectangle coordinates
+
+			//Console.WriteLine("SIZE X: {0}, SIZE Y: {1}", imageCaptureInfo.actual_crop_size_x, imageCaptureInfo.actual_crop_size_y);
+
+			imageCaptureInfo.crop_coordinate_left = selectionRectanglePreviewBox.Left * (imageCaptureInfo.actual_crop_size_x / previewPictureBox.Width);
+			imageCaptureInfo.crop_coordinate_right = selectionRectanglePreviewBox.Right * (imageCaptureInfo.actual_crop_size_x / previewPictureBox.Width);
+			imageCaptureInfo.crop_coordinate_top = selectionRectanglePreviewBox.Top * (imageCaptureInfo.actual_crop_size_y / previewPictureBox.Height);
+			imageCaptureInfo.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom * (imageCaptureInfo.actual_crop_size_y / previewPictureBox.Height);
+
+			croppedPreviewPictureBox.Image = CaptureImageFullPreview(useCrop:true);
+
+
+			imageCaptureInfo.captureSizeX = captureSize.Width;
+			imageCaptureInfo.captureSizeY = captureSize.Height;
+
+		}
+
+		private void previewPictureBox_MouseClick(object sender, MouseEventArgs e)
+		{
+			if(e.Button == MouseButtons.Left 
+				&& (selectionRectanglePreviewBox.Left + selectionRectanglePreviewBox.Width) - e.Location.X > 0 
+				&& (selectionRectanglePreviewBox.Top + selectionRectanglePreviewBox.Height) - e.Location.Y > 0)
+			{
+				selectionTopLeft = e.Location;
+			}
+			else if (e.Button == MouseButtons.Right && e.Location.X - selectionRectanglePreviewBox.Left > 0 && e.Location.Y - selectionRectanglePreviewBox.Top > 0)
+			{
+				selectionBottomRight = e.Location;
+			}
+			
+			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
+			DrawPreview();
 		}
 	}
 }
