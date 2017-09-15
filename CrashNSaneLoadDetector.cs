@@ -187,6 +187,8 @@ namespace CrashNSaneLoadDetector
 			imageCaptureInfo.cropOffsetX = cropOffsetX;
 			imageCaptureInfo.cropOffsetY = cropOffsetY;
 			imageCaptureInfo.captureAspectRatio = captureAspectRatioX / captureAspectRatioY;
+
+			processListBox.SelectedIndex = 0;
 		}
 
 		#endregion Public Constructors
@@ -303,7 +305,7 @@ namespace CrashNSaneLoadDetector
 			return b;
 		}
 
-		private Bitmap CaptureImageFullPreview(bool useCrop = false)
+		private Bitmap CaptureImageFullPreview(ref ImageCaptureInfo imageCaptureInfo, bool useCrop = false)
 		{
 			Bitmap b = new Bitmap(1, 1);
 
@@ -840,12 +842,16 @@ namespace CrashNSaneLoadDetector
 
 		private void DrawPreview()
 		{
-		
-			imageCaptureInfo.captureSizeX = previewPictureBox.Width;
-			imageCaptureInfo.captureSizeY = previewPictureBox.Height;
+			
+
+			ImageCaptureInfo copy = imageCaptureInfo;
+			copy.captureSizeX = previewPictureBox.Width;
+			copy.captureSizeY = previewPictureBox.Height;
 
 			//Show something in the preview
-			Bitmap capture_image = CaptureImageFullPreview();
+			Bitmap capture_image = CaptureImageFullPreview(ref copy);
+			float crop_size_x = copy.actual_crop_size_x;
+			float crop_size_y = copy.actual_crop_size_y;
 
 
 			//Draw selection rectangle
@@ -868,16 +874,24 @@ namespace CrashNSaneLoadDetector
 
 			//Console.WriteLine("SIZE X: {0}, SIZE Y: {1}", imageCaptureInfo.actual_crop_size_x, imageCaptureInfo.actual_crop_size_y);
 
-			imageCaptureInfo.crop_coordinate_left = selectionRectanglePreviewBox.Left * (imageCaptureInfo.actual_crop_size_x / previewPictureBox.Width);
-			imageCaptureInfo.crop_coordinate_right = selectionRectanglePreviewBox.Right * (imageCaptureInfo.actual_crop_size_x / previewPictureBox.Width);
-			imageCaptureInfo.crop_coordinate_top = selectionRectanglePreviewBox.Top * (imageCaptureInfo.actual_crop_size_y / previewPictureBox.Height);
-			imageCaptureInfo.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom * (imageCaptureInfo.actual_crop_size_y / previewPictureBox.Height);
+			imageCaptureInfo.crop_coordinate_left = selectionRectanglePreviewBox.Left * (crop_size_x / previewPictureBox.Width);
+			imageCaptureInfo.crop_coordinate_right = selectionRectanglePreviewBox.Right * (crop_size_x / previewPictureBox.Width);
+			imageCaptureInfo.crop_coordinate_top = selectionRectanglePreviewBox.Top * (crop_size_y / previewPictureBox.Height);
+			imageCaptureInfo.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom * (crop_size_y / previewPictureBox.Height);
 
-			croppedPreviewPictureBox.Image = CaptureImageFullPreview(useCrop:true);
+			copy.crop_coordinate_left = selectionRectanglePreviewBox.Left * (crop_size_x / previewPictureBox.Width);
+			copy.crop_coordinate_right = selectionRectanglePreviewBox.Right * (crop_size_x / previewPictureBox.Width);
+			copy.crop_coordinate_top = selectionRectanglePreviewBox.Top * (crop_size_y / previewPictureBox.Height);
+			copy.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom * (crop_size_y / previewPictureBox.Height);
 
 
-			imageCaptureInfo.captureSizeX = captureSize.Width;
-			imageCaptureInfo.captureSizeY = captureSize.Height;
+
+			croppedPreviewPictureBox.Image = CaptureImageFullPreview(ref copy, useCrop:true);
+
+
+			copy.captureSizeX = captureSize.Width;
+			copy.captureSizeY = captureSize.Height;
+			
 
 		}
 
