@@ -49,7 +49,7 @@ namespace CrashNSaneLoadDetector
 		private int milliSecondsBetweenSnapshots = 500;
 		private List<long> msElapsed;
 
-
+		
 
 		private int numberOfBins = 16;
 
@@ -105,7 +105,8 @@ namespace CrashNSaneLoadDetector
 		//negative -> screen indices, other -> index to processList
 		private int processCaptureIndex = -1;
 		private int numScreens = 1;
-
+		private bool drawingPreview = false;
+		private Bitmap previewImage = null;
 		#endregion Private Fields
 
 		#region Public Constructors
@@ -840,20 +841,9 @@ namespace CrashNSaneLoadDetector
 
 		}
 
-		private void DrawPreview()
+		private void DrawCaptureRectangleBitmap()
 		{
-			
-
-			ImageCaptureInfo copy = imageCaptureInfo;
-			copy.captureSizeX = previewPictureBox.Width;
-			copy.captureSizeY = previewPictureBox.Height;
-
-			//Show something in the preview
-			Bitmap capture_image = CaptureImageFullPreview(ref copy);
-			float crop_size_x = copy.actual_crop_size_x;
-			float crop_size_y = copy.actual_crop_size_y;
-
-
+			Bitmap capture_image = (Bitmap)previewImage.Clone();
 			//Draw selection rectangle
 			using (Graphics g = Graphics.FromImage(capture_image))
 			{
@@ -864,8 +854,26 @@ namespace CrashNSaneLoadDetector
 			}
 
 			previewPictureBox.Image = capture_image;
+		}
 
+		private void DrawPreview()
+		{
 			
+
+			ImageCaptureInfo copy = imageCaptureInfo;
+			copy.captureSizeX = previewPictureBox.Width;
+			copy.captureSizeY = previewPictureBox.Height;
+
+			//Show something in the preview
+			previewImage = CaptureImageFullPreview(ref copy);
+			float crop_size_x = copy.actual_crop_size_x;
+			float crop_size_y = copy.actual_crop_size_y;
+			
+
+			//Draw selection rectangle
+			DrawCaptureRectangleBitmap();
+
+
 
 
 			//Compute image crop coordinates according to selection rectangle
@@ -895,20 +903,55 @@ namespace CrashNSaneLoadDetector
 
 		}
 
+		private void SetRectangleFromMouse(MouseEventArgs e)
+		{
+			//Clamp values to pictureBox range
+			int x = Math.Min(Math.Max(0, e.Location.X), previewPictureBox.Width);
+			int y = Math.Min(Math.Max(0, e.Location.Y), previewPictureBox.Height);
+
+			if (e.Button == MouseButtons.Left
+				&& (selectionRectanglePreviewBox.Left + selectionRectanglePreviewBox.Width) - x > 0
+				&& (selectionRectanglePreviewBox.Top + selectionRectanglePreviewBox.Height) - y > 0)
+			{
+				selectionTopLeft = new Point(x, y);
+			}
+			else if (e.Button == MouseButtons.Right && x - selectionRectanglePreviewBox.Left > 0 && y - selectionRectanglePreviewBox.Top > 0)
+			{
+				selectionBottomRight = new Point(x, y);
+			}
+
+			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
+
+
+		}
+
 		private void previewPictureBox_MouseClick(object sender, MouseEventArgs e)
 		{
-			if(e.Button == MouseButtons.Left 
-				&& (selectionRectanglePreviewBox.Left + selectionRectanglePreviewBox.Width) - e.Location.X > 0 
-				&& (selectionRectanglePreviewBox.Top + selectionRectanglePreviewBox.Height) - e.Location.Y > 0)
+			
+		}
+
+		private void previewPictureBox_MouseMove(object sender, MouseEventArgs e)
+		{
+			SetRectangleFromMouse(e);
+			if (drawingPreview == false)
 			{
-				selectionTopLeft = e.Location;
-			}
-			else if (e.Button == MouseButtons.Right && e.Location.X - selectionRectanglePreviewBox.Left > 0 && e.Location.Y - selectionRectanglePreviewBox.Top > 0)
-			{
-				selectionBottomRight = e.Location;
+				drawingPreview = true;
+				//Draw selection rectangle
+				DrawCaptureRectangleBitmap();
+				drawingPreview = false;
 			}
 			
-			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
+		}
+
+		private void previewPictureBox_MouseUp(object sender, MouseEventArgs e)
+		{
+			SetRectangleFromMouse(e);
+			DrawPreview();
+		}
+
+		private void previewPictureBox_MouseDown(object sender, MouseEventArgs e)
+		{
+			SetRectangleFromMouse(e);
 			DrawPreview();
 		}
 	}
