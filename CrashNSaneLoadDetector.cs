@@ -107,6 +107,9 @@ namespace CrashNSaneLoadDetector
 		private int numScreens = 1;
 		private bool drawingPreview = false;
 		private Bitmap previewImage = null;
+
+		private int scalingValue = 100;
+		private float scalingValueFloat = 1.0f;
 		#endregion Private Fields
 
 		#region Public Constructors
@@ -260,6 +263,9 @@ namespace CrashNSaneLoadDetector
 				Screen selected_screen = Screen.AllScreens[-processCaptureIndex - 1];
 				Rectangle screenRect = selected_screen.Bounds;
 
+				screenRect.Width = (int)(screenRect.Width * scalingValueFloat);
+				screenRect.Height = (int)(screenRect.Height * scalingValueFloat);
+
 				Point screenCenter = new Point(screenRect.Width / 2, screenRect.Height / 2);
 
 
@@ -316,7 +322,11 @@ namespace CrashNSaneLoadDetector
 				Screen selected_screen = Screen.AllScreens[-processCaptureIndex - 1];
 				Rectangle screenRect = selected_screen.Bounds;
 
-				Point screenCenter = new Point(screenRect.Width / 2, screenRect.Height / 2);
+				screenRect.Width = (int)(screenRect.Width * scalingValueFloat);
+				screenRect.Height = (int)(screenRect.Height * scalingValueFloat);
+
+
+				Point screenCenter = new Point((int)(screenRect.Width / 2.0f), (int)(screenRect.Height/ 2.0f));
 
 				if(useCrop)
 				{
@@ -373,7 +383,7 @@ namespace CrashNSaneLoadDetector
 
 			
 
-				b = ImageCapture.PrintWindow(handle, ref imageCaptureInfo, full:true, useCrop:useCrop);
+				b = ImageCapture.PrintWindow(handle, ref imageCaptureInfo, full:true, useCrop:useCrop, scalingValueFloat:scalingValueFloat);
 			}
 
 
@@ -832,7 +842,14 @@ namespace CrashNSaneLoadDetector
 
 		private void processListBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			processCaptureIndex = processListBox.SelectedIndex - numScreens;
+			if (processListBox.SelectedIndex < numScreens)
+			{
+				processCaptureIndex = -processListBox.SelectedIndex - 1;
+			}
+			else
+			{
+				processCaptureIndex = processListBox.SelectedIndex - numScreens;
+			}
 			selectionTopLeft = new Point(0, 0);
 			selectionBottomRight = new Point(previewPictureBox.Width, previewPictureBox.Height);
 			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
@@ -882,14 +899,14 @@ namespace CrashNSaneLoadDetector
 
 			//Console.WriteLine("SIZE X: {0}, SIZE Y: {1}", imageCaptureInfo.actual_crop_size_x, imageCaptureInfo.actual_crop_size_y);
 
-			imageCaptureInfo.crop_coordinate_left = selectionRectanglePreviewBox.Left * (crop_size_x / previewPictureBox.Width);
-			imageCaptureInfo.crop_coordinate_right = selectionRectanglePreviewBox.Right * (crop_size_x / previewPictureBox.Width);
-			imageCaptureInfo.crop_coordinate_top = selectionRectanglePreviewBox.Top * (crop_size_y / previewPictureBox.Height);
-			imageCaptureInfo.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom * (crop_size_y / previewPictureBox.Height);
+			imageCaptureInfo.crop_coordinate_left = selectionRectanglePreviewBox.Left  * (crop_size_x / previewPictureBox.Width);
+			imageCaptureInfo.crop_coordinate_right = selectionRectanglePreviewBox.Right  * (crop_size_x / previewPictureBox.Width);
+			imageCaptureInfo.crop_coordinate_top = selectionRectanglePreviewBox.Top  * (crop_size_y / previewPictureBox.Height);
+			imageCaptureInfo.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom  * (crop_size_y / previewPictureBox.Height);
 
-			copy.crop_coordinate_left = selectionRectanglePreviewBox.Left * (crop_size_x / previewPictureBox.Width);
-			copy.crop_coordinate_right = selectionRectanglePreviewBox.Right * (crop_size_x / previewPictureBox.Width);
-			copy.crop_coordinate_top = selectionRectanglePreviewBox.Top * (crop_size_y / previewPictureBox.Height);
+			copy.crop_coordinate_left = selectionRectanglePreviewBox.Left  * (crop_size_x / previewPictureBox.Width);
+			copy.crop_coordinate_right = selectionRectanglePreviewBox.Right  * (crop_size_x / previewPictureBox.Width);
+			copy.crop_coordinate_top = selectionRectanglePreviewBox.Top  * (crop_size_y / previewPictureBox.Height);
 			copy.crop_coordinate_bottom = selectionRectanglePreviewBox.Bottom * (crop_size_y / previewPictureBox.Height);
 
 
@@ -952,6 +969,25 @@ namespace CrashNSaneLoadDetector
 		private void previewPictureBox_MouseDown(object sender, MouseEventArgs e)
 		{
 			SetRectangleFromMouse(e);
+			DrawPreview();
+		}
+
+		private void trackBar1_ValueChanged(object sender, EventArgs e)
+		{
+			scalingValue = trackBar1.Value;
+
+			if (scalingValue % trackBar1.SmallChange != 0)
+			{
+				scalingValue = (scalingValue / trackBar1.SmallChange) * trackBar1.SmallChange;
+
+				trackBar1.Value = scalingValue;
+				
+			}
+
+			scalingValueFloat = ((float)scalingValue) / 100.0f;
+
+			scalingLabel.Text = "Scaling: " + trackBar1.Value.ToString() + "%";
+
 			DrawPreview();
 		}
 	}
