@@ -35,7 +35,7 @@ namespace CrashNSaneLoadDetector
 		private int frameCount = 0;
 		private TimeSpan gameTime;
 		private System.Timers.Timer gameTimer;
-		private List<bool> histogramMatches;
+		//private List<bool> histogramMatches;
 		private List<int> lastFeatures;
 		private int lastPausedFrame = 0;
 		private int lastRunningFrame = 0;
@@ -49,21 +49,12 @@ namespace CrashNSaneLoadDetector
 		private int milliSecondsBetweenSnapshots = 500;
 		private List<long> msElapsed;
 
-		
-
-		private int numberOfBins = 16;
-
 		//float percent_of_bins_correct = 0.7f; //percentage of histogram bins which have to match for loading detection
-		private int numberOfBinsCorrect = 520;
-
+		
 		//Just used for diagnostics, to check how fast the detection works
 		private DateTime oldGameTime;
 
 		private DateTime oldRealTime;
-
-		private int patchSizeX = 50;
-
-		private int patchSizeY = 50;
 
 		private TimeSpan realTime;
 
@@ -133,7 +124,7 @@ namespace CrashNSaneLoadDetector
 			realTimer.Elapsed += timerValueUpdate;
 			snapshotMilliseconds = milliSecondsBetweenSnapshots;
 			listOfFeatureVectors = new List<List<int>>();
-			histogramMatches = new List<bool>();
+			//histogramMatches = new List<bool>();
 			msElapsed = new List<long>();
 			lastFeatures = new List<int>();
 			segmentSnapshots = new List<Bitmap>();
@@ -147,7 +138,7 @@ namespace CrashNSaneLoadDetector
 			selectionRectanglePreviewBox = new Rectangle(selectionTopLeft.X, selectionTopLeft.Y, selectionBottomRight.X - selectionTopLeft.X, selectionBottomRight.Y - selectionTopLeft.Y);
 
 
-			requiredMatchDisplayLabel.Text = numberOfBinsCorrect.ToString();
+			requiredMatchesUpDown.Value = FeatureDetector.numberOfBinsCorrect;
 
 			
 
@@ -509,8 +500,11 @@ namespace CrashNSaneLoadDetector
 				bmp = CaptureImage();
 
 				List<int> features = FeatureDetector.featuresFromBitmap(bmp);
+
+
 				lastFeatures = features;
-				bool matchingHistograms = FeatureDetector.compareFeatureVector(features.ToArray(), out matchingBins, false);
+				int tempMatchingBins = 0;
+				bool matchingHistograms = FeatureDetector.compareFeatureVector(features.ToArray(), out tempMatchingBins, false);
 
 				if (snapshotMilliseconds <= 0)
 				{
@@ -519,7 +513,7 @@ namespace CrashNSaneLoadDetector
 					snapshotFrameCount = frameCount;
 
 					segmentSnapshots.Add(bmp);
-					segmentMatchingBins.Add(matchingBins);
+					segmentMatchingBins.Add(tempMatchingBins);
 					segmentFeatureVectors.Add(features);
 					segmentFrameCounts.Add(frameCount);
 				}
@@ -551,13 +545,14 @@ namespace CrashNSaneLoadDetector
 
 						try
 						{
-							bmp.Save(DiagnosticsFolderName + "imgs_stopped/img_" + frameCount + "_" + matchingBins + ".jpg", ImageFormat.Jpeg);
+							
+							bmp.Save(DiagnosticsFolderName + "imgs_stopped/img_" + frameCount + "_" + tempMatchingBins + ".jpg", ImageFormat.Jpeg);
 						}
 						catch
 						{
 						}
-
-						saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + matchingBins + ".txt", DiagnosticsFolderName + "features_stopped");
+						
+						saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + tempMatchingBins + ".txt", DiagnosticsFolderName + "features_stopped");
 
 						lastSaveFrame = frameCount;
 					}
@@ -572,13 +567,13 @@ namespace CrashNSaneLoadDetector
 						System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_running");
 						try
 						{
-							bmp.Save(DiagnosticsFolderName + "imgs_running/img_" + frameCount + "_" + matchingBins + ".jpg", ImageFormat.Jpeg);
+							bmp.Save(DiagnosticsFolderName + "imgs_running/img_" + frameCount + "_" + tempMatchingBins + ".jpg", ImageFormat.Jpeg);
 						}
 						catch
 						{
 						}
 
-						saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + matchingBins + ".txt", DiagnosticsFolderName + "features_running");
+						saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + tempMatchingBins + ".txt", DiagnosticsFolderName + "features_running");
 
 						lastSaveFrame = frameCount;
 					}
@@ -586,7 +581,7 @@ namespace CrashNSaneLoadDetector
 				}
 
 				frameCount++;
-				histogramMatches.Add(matchingHistograms);
+				//histogramMatches.Add(matchingHistograms);
 				try
 				{
 					Invoke(new Action(() =>
@@ -599,8 +594,8 @@ namespace CrashNSaneLoadDetector
 							imageDisplay.Size = new Size(captureSize.Width, captureSize.Height);
 							imageDisplay.BackgroundImage = bmp;
 							imageDisplay.Refresh();
-							matchDisplayLabel.Text = matchingBins.ToString();
-							requiredMatchDisplayLabel.Text = numberOfBinsCorrect.ToString();
+							matchDisplayLabel.Text = tempMatchingBins.ToString();
+							//requiredMatchesTxt.Text = numberOfBinsCorrect.ToString();
 							if (matchingHistograms)
 							{
 							//paused
@@ -622,7 +617,7 @@ namespace CrashNSaneLoadDetector
 				{
 					//if the form is closing, we just do nothing.
 				}
-
+				matchingBins = tempMatchingBins;
 				return features;
 			}
 			catch (Exception ex)
@@ -916,8 +911,14 @@ namespace CrashNSaneLoadDetector
 
 			copy.captureSizeX = captureSize.Width;
 			copy.captureSizeY = captureSize.Height;
-			
 
+			//Show matching bins for preview
+			var capture = CaptureImage();
+			var features = FeatureDetector.featuresFromBitmap(capture);
+			int tempMatchingBins = 0;
+			var isLoading = FeatureDetector.compareFeatureVector(features.ToArray(), out tempMatchingBins, false);
+
+			matchDisplayLabel.Text = tempMatchingBins.ToString();
 		}
 
 		private void SetRectangleFromMouse(MouseEventArgs e)
@@ -989,6 +990,11 @@ namespace CrashNSaneLoadDetector
 			scalingLabel.Text = "Scaling: " + trackBar1.Value.ToString() + "%";
 
 			DrawPreview();
+		}
+
+		private void requiredMatchesUpDown_ValueChanged(object sender, EventArgs e)
+		{
+			FeatureDetector.numberOfBinsCorrect = (int)requiredMatchesUpDown.Value;
 		}
 	}
 }
