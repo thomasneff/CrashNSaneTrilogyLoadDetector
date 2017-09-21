@@ -17,7 +17,7 @@ namespace CrashNSaneLoadDetector
 		private static float additiveVariance = 2.0f;
 		private static int patchSizeX = 50;
 		private static int patchSizeY = 50;
-		public static int numberOfBinsCorrect = 450;
+		public static int numberOfBinsCorrect = 300;
 		private static int numberOfBins = 16;
 
 		public static bool compareFeatureVector(int[] newVector, out int matchingBins, bool debugOutput = true)
