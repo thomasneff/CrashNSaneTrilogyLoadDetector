@@ -101,6 +101,7 @@ namespace CrashNSaneLoadDetector
 
 		private int scalingValue = 100;
 		private float scalingValueFloat = 1.0f;
+		private int[] HistogramOfMatchingBins;
 		#endregion Private Fields
 
 		#region Public Constructors
@@ -131,6 +132,7 @@ namespace CrashNSaneLoadDetector
 			segmentMatchingBins = new List<int>();
 			segmentFrameCounts = new List<int>();
 			segmentFeatureVectors = new List<List<int>>();
+			HistogramOfMatchingBins = new int[577];
 
 			selectionTopLeft = new Point(0, 0);
 			selectionBottomRight = new Point(previewPictureBox.Width, previewPictureBox.Height);
@@ -408,7 +410,7 @@ namespace CrashNSaneLoadDetector
 					{
 						pauseSegmentList.Items.Add(DateTime.Now - loadStart);
 
-						if (saveDiagnosticImages)
+						if (saveDiagnosticImages && false)
 						{
 							//Set this early, otherwise we might enter multiple times if there are a lot of images to save
 
@@ -505,7 +507,7 @@ namespace CrashNSaneLoadDetector
 				lastFeatures = features;
 				int tempMatchingBins = 0;
 				bool matchingHistograms = FeatureDetector.compareFeatureVector(features.ToArray(), out tempMatchingBins, false);
-
+				HistogramOfMatchingBins[tempMatchingBins]++;
 				if (snapshotMilliseconds <= 0)
 				{
 					snapshotMilliseconds = milliSecondsBetweenSnapshots;
@@ -532,10 +534,29 @@ namespace CrashNSaneLoadDetector
 					}
 					sum /= msElapsed.Count;
 					msElapsed.Clear();
-					//Console.WriteLine("DetectMatch (avg): " + sum + "ms");
+					Console.WriteLine("DetectMatch (avg): " + sum + "ms");
 				}
 
-				if (currentlyPaused)
+				if (tempMatchingBins >= 300 && tempMatchingBins <= 420 && saveDiagnosticImages)
+				{
+					System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_features_interesting");
+
+					try
+					{
+
+						bmp.Save(DiagnosticsFolderName + "imgs_features_interesting/img_" + frameCount + "_" + tempMatchingBins + ".jpg", ImageFormat.Jpeg);
+					}
+					catch
+					{
+					}
+
+					saveFeatureVectorToTxt(features, "features_" + frameCount + "_" + tempMatchingBins + ".txt", DiagnosticsFolderName + "imgs_features_interesting");
+
+					//lastSaveFrame = frameCount;
+				}
+
+
+				if (currentlyPaused && false)
 				{
 					//only save if we haven't saved for at least 10 frames, just for diagnostics to see if any false positives are in there.
 					//or if we haven't seen a paused frame for at least 30 frames.
@@ -677,7 +698,7 @@ namespace CrashNSaneLoadDetector
 			gameTime = new TimeSpan(0);
 			loadTime = new TimeSpan(0);
 			loadTimeTemp = new TimeSpan(0);
-
+			HistogramOfMatchingBins = new int[577];
 			currentlyPaused = false;
 			frameCount = 0;
 			lastRunningFrame = 0;
@@ -764,6 +785,18 @@ namespace CrashNSaneLoadDetector
 
 				file.Write("};\n");
 			}
+
+			using (var file = File.CreateText(DiagnosticsFolderName + "histogram.txt"))
+			{
+				int idx = 0;
+				foreach (var hist_entry in HistogramOfMatchingBins)
+				{
+					file.Write(idx.ToString() + "," + hist_entry + ";\n");
+					idx++;
+				}
+
+				file.Write("\n");
+			}
 		}
 
 		private void saveFeatureVectorToTxt(List<int> featureVector, string filename, string directoryName)
@@ -833,6 +866,9 @@ namespace CrashNSaneLoadDetector
 
 			bmp.Dispose();
 			clone.Dispose();
+
+			
+
 		}
 
 		private void processListBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -995,6 +1031,69 @@ namespace CrashNSaneLoadDetector
 		private void requiredMatchesUpDown_ValueChanged(object sender, EventArgs e)
 		{
 			FeatureDetector.numberOfBinsCorrect = (int)requiredMatchesUpDown.Value;
+		}
+
+		private void button2_Click(object sender, EventArgs e)
+		{
+			FolderBrowserDialog fbd = new FolderBrowserDialog();
+		
+			DialogResult result = fbd.ShowDialog();
+
+			if (result != DialogResult.OK)
+			{
+				return;
+			}
+
+			DirectoryInfo d = new DirectoryInfo(fbd.SelectedPath);
+
+			foreach (var file in d.GetFiles("*.jpg"))
+			{
+				Bitmap bmp = new Bitmap(file.FullName);
+
+				//Make 32 bit ARGB bitmap
+				Bitmap clone = new Bitmap(bmp.Width, bmp.Height,
+					System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+				using (Graphics gr = Graphics.FromImage(clone))
+				{
+					gr.DrawImage(bmp, new Rectangle(0, 0, clone.Width, clone.Height));
+				}
+
+				List<int> features = FeatureDetector.featuresFromBitmap(clone);
+				int tempMatchingBins = 0;
+				bool compare_result = FeatureDetector.compareFeatureVector(features.ToArray(), out tempMatchingBins);
+
+				Console.WriteLine("RESULT: " + tempMatchingBins + " matching bins, compare == " + compare_result);
+
+
+				if(tempMatchingBins < FeatureDetector.numberOfBinsCorrect)
+				{
+					currentRecordCount++;
+					listOfFeatureVectors.Add(features);
+				}
+				
+
+				
+
+				bmp.Dispose();
+				clone.Dispose();
+			}
+
+			System.IO.Directory.CreateDirectory(DiagnosticsFolderName);
+			using (var feature_file = File.CreateText(DiagnosticsFolderName + "loading_eng_features.txt"))
+			{
+				feature_file.Write("private int[,] listOfFeatureVectorsEng = {\n");
+				foreach (var list in listOfFeatureVectors)
+				{
+					feature_file.Write("{");
+					feature_file.Write(string.Join(",", list));
+					feature_file.Write("},\n");
+				}
+
+				feature_file.Write("};\n");
+			}
+
+
 		}
 	}
 }

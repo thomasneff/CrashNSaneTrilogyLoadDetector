@@ -58,6 +58,7 @@
 			this.trackBar1 = new System.Windows.Forms.TrackBar();
 			this.scalingLabel = new System.Windows.Forms.Label();
 			this.requiredMatchesUpDown = new System.Windows.Forms.NumericUpDown();
+			this.button2 = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.imageDisplay)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.previewPictureBox)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.croppedPreviewPictureBox)).BeginInit();
@@ -244,7 +245,7 @@
 			this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
 			this.button1.Location = new System.Drawing.Point(407, 604);
 			this.button1.Name = "button1";
-			this.button1.Size = new System.Drawing.Size(109, 23);
+			this.button1.Size = new System.Drawing.Size(113, 23);
 			this.button1.TabIndex = 19;
 			this.button1.Text = "Feature from File";
 			this.button1.UseVisualStyleBackColor = true;
@@ -334,7 +335,7 @@
 			// 
 			this.trackBar1.LargeChange = 25;
 			this.trackBar1.Location = new System.Drawing.Point(693, 51);
-			this.trackBar1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+			this.trackBar1.Margin = new System.Windows.Forms.Padding(2);
 			this.trackBar1.Maximum = 201;
 			this.trackBar1.Minimum = 100;
 			this.trackBar1.Name = "trackBar1";
@@ -378,11 +379,23 @@
             0});
 			this.requiredMatchesUpDown.ValueChanged += new System.EventHandler(this.requiredMatchesUpDown_ValueChanged);
 			// 
+			// button2
+			// 
+			this.button2.DialogResult = System.Windows.Forms.DialogResult.OK;
+			this.button2.Location = new System.Drawing.Point(407, 632);
+			this.button2.Name = "button2";
+			this.button2.Size = new System.Drawing.Size(113, 23);
+			this.button2.TabIndex = 33;
+			this.button2.Text = "Features from Folder";
+			this.button2.UseVisualStyleBackColor = true;
+			this.button2.Click += new System.EventHandler(this.button2_Click);
+			// 
 			// CrashNSaneLoadDetector
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1158, 674);
+			this.Controls.Add(this.button2);
 			this.Controls.Add(this.requiredMatchesUpDown);
 			this.Controls.Add(this.scalingLabel);
 			this.Controls.Add(this.trackBar1);
@@ -458,6 +471,7 @@
 		private System.Windows.Forms.TrackBar trackBar1;
 		private System.Windows.Forms.Label scalingLabel;
 		private System.Windows.Forms.NumericUpDown requiredMatchesUpDown;
+		private System.Windows.Forms.Button button2;
 	}
 }
 
