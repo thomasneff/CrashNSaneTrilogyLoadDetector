@@ -410,7 +410,14 @@ namespace CrashNSaneLoadDetector
 					{
 						pauseSegmentList.Items.Add(DateTime.Now - loadStart);
 
-						if (saveDiagnosticImages && false)
+						if(DateTime.Now - loadStart >= new TimeSpan(0, 0, 0, 20))
+						{
+							this.BackColor = Color.Red;
+							Console.WriteLine("OMG ERROR WTF");
+							resetState();
+						}
+
+						if (saveDiagnosticImages)
 						{
 							//Set this early, otherwise we might enter multiple times if there are a lot of images to save
 
@@ -506,7 +513,10 @@ namespace CrashNSaneLoadDetector
 
 				lastFeatures = features;
 				int tempMatchingBins = 0;
-				bool matchingHistograms = FeatureDetector.compareFeatureVector(features.ToArray(), out tempMatchingBins, false);
+				bool matchingHistograms = FeatureDetector.compareFeatureVector(features.ToArray(), out tempMatchingBins, true);
+
+				currentlyPaused = matchingHistograms;
+
 				HistogramOfMatchingBins[tempMatchingBins]++;
 				if (snapshotMilliseconds <= 0)
 				{
@@ -520,7 +530,7 @@ namespace CrashNSaneLoadDetector
 					segmentFrameCounts.Add(frameCount);
 				}
 
-				currentlyPaused = matchingHistograms;
+				
 				stopwatch.Stop();
 
 				msElapsed.Add(stopwatch.ElapsedMilliseconds);
@@ -537,7 +547,7 @@ namespace CrashNSaneLoadDetector
 					Console.WriteLine("DetectMatch (avg): " + sum + "ms");
 				}
 
-				if (tempMatchingBins >= 300 && tempMatchingBins <= 420 && saveDiagnosticImages)
+				if (tempMatchingBins >= 250 && tempMatchingBins <= 420 && saveDiagnosticImages)
 				{
 					System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_features_interesting");
 
@@ -556,11 +566,12 @@ namespace CrashNSaneLoadDetector
 				}
 
 
-				if (currentlyPaused && false)
+				if (currentlyPaused)
 				{
+					
 					//only save if we haven't saved for at least 10 frames, just for diagnostics to see if any false positives are in there.
 					//or if we haven't seen a paused frame for at least 30 frames.
-					if ((frameCount > (lastSaveFrame + 10) || (frameCount - lastPausedFrame) > 30) && saveDiagnosticImages)
+					if ((frameCount > (lastSaveFrame + 10) || (frameCount - lastPausedFrame) > 30) && saveDiagnosticImages && false)
 					{
 						System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_stopped");
 
@@ -583,7 +594,7 @@ namespace CrashNSaneLoadDetector
 				else
 				{
 					//save if we haven't seen a running frame for at least 30 frames (to detect false runs - e.g. aku covering "loading"
-					if ((frameCount - lastRunningFrame) > 10 && saveDiagnosticImages)
+					if ((frameCount - lastRunningFrame) > 10 && saveDiagnosticImages && false)
 					{
 						System.IO.Directory.CreateDirectory(DiagnosticsFolderName + "imgs_running");
 						try
@@ -1070,6 +1081,7 @@ namespace CrashNSaneLoadDetector
 				{
 					currentRecordCount++;
 					listOfFeatureVectors.Add(features);
+					clone.Save(currentRecordCount.ToString() + ".jpg");
 				}
 				
 
